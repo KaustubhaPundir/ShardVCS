@@ -1,6 +1,8 @@
 use std::env;
 use std::fs;
 mod index;
+use std::path::Path;
+use index::scanner::scan;
 fn main(){
     // let args: Vec<String> = env::args().collect();
 
@@ -13,6 +15,8 @@ fn main(){
     //     "init" => init_repo(),
     //     _ => eprintln!("unknown command"),
     // }
+    let tree=scan(Path::new("."));
+    println!("{:#?}",tree);
 }
 
 fn init_repo(){

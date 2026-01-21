@@ -23,3 +23,20 @@ pub fn detect_changes(node: &mut IndexNode, base: &Path){
         }
     }
 }
+pub fn print_status(node: &IndexNode, prefix: String) {
+    if !node.dirty {
+        return;
+    }
+
+    match node.node_type {
+        NodeType::File => {
+            println!("modified: {}{}", prefix, node.name);
+        }
+        NodeType::Directory => {
+            let new_prefix = format!("{}/", node.name);
+            for child in node.children.values() {
+                print_status(child, format!("{}{}", prefix, new_prefix));
+            }
+        }
+    }
+}

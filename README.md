@@ -4,12 +4,12 @@ An experimental Git-like version control system exploring scalable index designs
 for large monorepositories.
 
 ## Motivation
-Explain Git’s monolithic index bottleneck clearly.
+Git’s monolithic index bottleneck.
 
 ## Design Overview
 - Sharded index by directory
 - Trade-offs
-- Why cold status improves
+- Cold status improves
 
 ## Benchmarks
 - Test setup

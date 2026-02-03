@@ -1,27 +1,36 @@
-use std::env;
-use std::fs;
+use clap::{Parser, Subcommand};
+
+mod repo;
+mod object;
 mod index;
-use std::path::Path;
-use index::scanner::scan;
-fn main(){
-    // let args: Vec<String> = env::args().collect();
+mod commands;
 
-    // if(args.len() < 2){
-    //     eprintln!("Usage: vcs <command>");
-    //     return;
-    // }
-
-    // match args[1].as_str(){
-    //     "init" => init_repo(),
-    //     _ => eprintln!("unknown command"),
-    // }
-    let tree=scan(Path::new("."));
-    println!("{:#?}",tree);
+#[derive(Parser)]
+#[command(author, version, about)]
+struct Cli {
+    #[command(subcommand)]
+    command: Command,
 }
 
-fn init_repo(){
-    fs::create_dir(".vcs").expect("Failed to create .vcs");
-    fs::create_dir(".vcs/index").unwrap();
-    fs::create_dir(".vcs/objects").unwrap();
-    println!("Initialized empty VCS repository");
+#[derive(Subcommand)]
+enum Command {
+    Init,
+    Add { path: String },
+    Status,
+    Commit { message: String },
+    Log,
+    Checkout { hash: String },
+}
+
+fn main() {
+    let cli = Cli::parse();
+
+    match cli.command {
+        Command::Init => commands::init::run(),
+        Command::Add { path } => commands::add::run(&path),
+        Command::Status => commands::status::run(),
+        Command::Commit { message } => commands::commit::run(&message),
+        Command::Log => commands::log::run(),
+        Command::Checkout { hash } => commands::checkout::run(&hash),
+    }
 }

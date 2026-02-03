@@ -26,3 +26,4 @@ Explain Git’s monolithic index bottleneck clearly.
 - Roadmap
 
 ## Disclaimer
+- The code comes under @copyright act 2026

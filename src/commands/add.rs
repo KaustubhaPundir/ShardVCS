@@ -1,10 +1,10 @@
+//src/commands/add.rs
 use std::fs;
 use std::path::{Path, PathBuf};
 
 use crate::{repo, object, index};
 
 fn walk(root: &Path, path: &Path) {
-    // Skip .vcs directory explicitly
     if path.ends_with(".vcs") {
         return;
     }
@@ -24,7 +24,6 @@ fn walk(root: &Path, path: &Path) {
         let data = fs::read(path).expect("failed to read file");
         let hash = object::store(&data);
 
-        // Compute clean relative path
         let relative = path
             .strip_prefix(root)
             .unwrap_or(path)

@@ -9,8 +9,7 @@ permissions:
   contents: write
 
 jobs:
-  build:
-    name: Build (${{ matrix.os }})
+  release:
     runs-on: ${{ matrix.os }}
 
     strategy:
@@ -18,29 +17,26 @@ jobs:
         os: [ubuntu-latest, macos-latest, windows-latest]
 
     steps:
-      - name: Checkout source
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Install Rust
-        uses: dtolnay/rust-toolchain@stable
+      - uses: dtolnay/rust-toolchain@stable
 
       - name: Build release
         run: cargo build --release
 
-      - name: Prepare artifacts (Linux / macOS)
-        if: runner.os != 'Windows'
+      - name: Prepare binaries
+        shell: bash
         run: |
           mkdir dist
-          cp target/release/svcs dist/svcs
+          if [[ "$RUNNER_OS" == "Windows" ]]; then
+            cp target/release/svcs.exe dist/shardvcs-windows.exe
+          elif [[ "$RUNNER_OS" == "macOS" ]]; then
+            cp target/release/svcs dist/shardvcs-macos
+          else
+            cp target/release/svcs dist/shardvcs-linux
+          fi
 
-      - name: Prepare artifacts (Windows)
-        if: runner.os == 'Windows'
-        run: |
-          mkdir dist
-          copy target\release\svcs.exe dist\svcs.exe
-
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
+      - name: Upload binaries to GitHub Release
+        uses: softprops/action-gh-release@v2
         with:
-          name: svcs-${{ runner.os }}
-          path: dist/*
+          files: dist/*

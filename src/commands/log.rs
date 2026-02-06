@@ -1,4 +1,3 @@
-// src/commands/log.rs
 use crate::object;
 use serde::{Serialize, Deserialize};
 use std::fs;

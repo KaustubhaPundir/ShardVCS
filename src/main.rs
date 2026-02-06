@@ -4,6 +4,7 @@ mod repo;
 mod object;
 mod index;
 mod commands;
+mod dirhash;
 
 #[derive(Parser)]
 #[command(author, version, about)]

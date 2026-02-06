@@ -1,7 +1,8 @@
-use crate::{repo, index, object};
+use crate::{dirhash, index, object, repo};
 use chrono::Utc;
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 use std::fs;
+use std::path::Path;
 
 #[derive(Serialize, Deserialize)]
 struct Commit {
@@ -37,6 +38,10 @@ pub fn run(message: &str) {
     let hash = object::store(&data);
 
     fs::write(".vcs/HEAD", &hash).unwrap();
+
+    let root = Path::new(".");
+    let h = dirhash::hash_dir(root);
+    dirhash::save(root, &h);
 
     index::clear();
 

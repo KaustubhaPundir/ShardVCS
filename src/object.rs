@@ -9,9 +9,7 @@ pub fn hash_bytes(data: &[u8]) -> String {
 }
 
 pub fn store(data: &[u8]) -> String {
-    let mut hasher = Sha256::new();
-    hasher.update(data);
-    let hash = format!("{:x}", hasher.finalize());
+    let hash = hash_bytes(data);
 
     let (dir, file) = hash.split_at(2);
     let dir_path = format!(".vcs/objects/{}", dir);

@@ -1,4 +1,3 @@
-// src/commands/init.rs
 use crate::repo;
 
 pub fn run() {

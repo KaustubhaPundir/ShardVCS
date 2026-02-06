@@ -3,17 +3,16 @@ use serde::{Serialize, Deserialize};
 use std::collections::{HashMap, HashSet};
 use std::fs;
 use std::path::{Path, PathBuf};
+use crate::dirhash;
 
-/// Commit object (must match commit.rs exactly)
 #[derive(Serialize, Deserialize)]
 struct Commit {
     message: String,
     timestamp: String,
     parent: Option<String>,
-    files: Vec<(String, String)>, // (path, hash)
+    files: Vec<(String, String)>,
 }
 
-/// Load files tracked by HEAD commit
 fn load_tracked_from_head() -> HashMap<String, String> {
     let head = match fs::read_to_string(".vcs/HEAD") {
         Ok(h) => h.trim().to_string(),
@@ -30,11 +29,19 @@ fn load_tracked_from_head() -> HashMap<String, String> {
     commit.files.into_iter().collect()
 }
 
-/// Recursively collect working tree files
-fn collect_files(dir: &Path, files: &mut Vec<PathBuf>) {
+pub fn collect_files(dir: &Path, files: &mut Vec<PathBuf>) {
     if dir.ends_with(".vcs") {
         return;
     }
+
+    let current_hash = dirhash::hash_dir(dir);
+
+    if let Some(old_hash) = cached_hash(dir) {
+        if old_hash.trim() == current_hash {
+            return;
+        }
+    }
+
 
     let entries = match fs::read_dir(dir) {
         Ok(e) => e,
@@ -42,13 +49,17 @@ fn collect_files(dir: &Path, files: &mut Vec<PathBuf>) {
     };
 
     for entry in entries {
-        if let Ok(entry) = entry {
-            let path = entry.path();
-            if path.is_dir() {
-                collect_files(&path, files);
-            } else if path.is_file() {
-                files.push(path);
-            }
+        let entry = match entry {
+            Ok(e) => e,
+            Err(_) => continue,
+        };
+
+        let path = entry.path();
+
+        if path.is_dir() {
+            collect_files(&path, files);
+        } else if path.is_file() {
+            files.push(path);
         }
     }
 }
@@ -56,8 +67,8 @@ fn collect_files(dir: &Path, files: &mut Vec<PathBuf>) {
 pub fn run() {
     repo::ensure_repo();
 
-    let staged = index::load_all();               // index (staging area)
-    let tracked = load_tracked_from_head();       // HEAD commit
+    let staged = index::load_all();
+    let tracked = load_tracked_from_head();
     let mut working_files = Vec::new();
 
     collect_files(Path::new("."), &mut working_files);
@@ -69,7 +80,6 @@ pub fn run() {
     let mut untracked_files = Vec::new();
     let mut deleted_files = Vec::new();
 
-    // ---- Analyze working tree ----
     for path in working_files {
         let rel = path
             .strip_prefix(".")
@@ -81,7 +91,7 @@ pub fn run() {
         seen.insert(rel.clone());
 
         if let Some(staged_hash) = staged.get(&rel) {
-            // File is staged
+
             let data = fs::read(&path).unwrap();
             let cur_hash = object::hash_bytes(&data);
 
@@ -91,28 +101,23 @@ pub fn run() {
                 modified_files.push(rel);
             }
         } else if let Some(tracked_hash) = tracked.get(&rel) {
-            // File is tracked but not staged
             let data = fs::read(&path).unwrap();
             let cur_hash = object::hash_bytes(&data);
 
             if &cur_hash != tracked_hash {
                 modified_files.push(rel);
             }
-            // clean tracked file → show nothing (Git default)
         } else {
-            // Truly untracked
             untracked_files.push(rel);
         }
     }
 
-    // ---- Detect deleted files ----
     for path in tracked.keys() {
         if !seen.contains(path) {
             deleted_files.push(path.clone());
         }
     }
 
-    // ---- Output ----
     if staged_files.is_empty()
         && modified_files.is_empty()
         && deleted_files.is_empty()
@@ -149,4 +154,10 @@ pub fn run() {
             println!("  {}", f);
         }
     }
+}
+
+fn cached_hash(path: &Path) -> Option<String> {
+    let rel = path.strip_prefix(".").unwrap_or(path);
+    let name = rel.to_string_lossy().replace("/", "_");
+    fs::read_to_string(format!(".vcs/dirhash/{}", name)).ok()
 }

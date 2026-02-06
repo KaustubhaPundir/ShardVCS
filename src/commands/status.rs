@@ -28,8 +28,13 @@ fn load_tracked_from_head() -> HashMap<String, String> {
 
     commit.files.into_iter().collect()
 }
+<<<<<<< HEAD
 
 pub fn collect_files(dir: &Path, files: &mut Vec<PathBuf>) {
+=======
+//working tree collection
+fn collect_files(dir: &Path, files: &mut Vec<PathBuf>) {
+>>>>>>> 915a457cc94e565af96a426a32315cabde362ea9
     if dir.ends_with(".vcs") {
         return;
     }
@@ -91,7 +96,10 @@ pub fn run() {
         seen.insert(rel.clone());
 
         if let Some(staged_hash) = staged.get(&rel) {
+<<<<<<< HEAD
 
+=======
+>>>>>>> 915a457cc94e565af96a426a32315cabde362ea9
             let data = fs::read(&path).unwrap();
             let cur_hash = object::hash_bytes(&data);
 
@@ -101,6 +109,10 @@ pub fn run() {
                 modified_files.push(rel);
             }
         } else if let Some(tracked_hash) = tracked.get(&rel) {
+<<<<<<< HEAD
+=======
+
+>>>>>>> 915a457cc94e565af96a426a32315cabde362ea9
             let data = fs::read(&path).unwrap();
             let cur_hash = object::hash_bytes(&data);
 
@@ -111,13 +123,21 @@ pub fn run() {
             untracked_files.push(rel);
         }
     }
+<<<<<<< HEAD
 
+=======
+//deleted files
+>>>>>>> 915a457cc94e565af96a426a32315cabde362ea9
     for path in tracked.keys() {
         if !seen.contains(path) {
             deleted_files.push(path.clone());
         }
     }
 
+<<<<<<< HEAD
+=======
+    //output
+>>>>>>> 915a457cc94e565af96a426a32315cabde362ea9
     if staged_files.is_empty()
         && modified_files.is_empty()
         && deleted_files.is_empty()

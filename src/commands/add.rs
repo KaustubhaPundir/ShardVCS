@@ -1,9 +1,14 @@
+<<<<<<< HEAD
 use std::collections::HashMap;
+=======
+//src/commands/add.rs
+>>>>>>> 915a457cc94e565af96a426a32315cabde362ea9
 use std::fs;
 use std::path::{Path, PathBuf};
 
 use serde::{Deserialize, Serialize};
 
+<<<<<<< HEAD
 use crate::{index, object, repo};
 
 #[derive(Serialize, Deserialize)]
@@ -32,6 +37,10 @@ fn load_tracked() -> HashMap<String, String> {
 
 fn collect_files(dir: &Path, files: &mut Vec<PathBuf>) {
     if dir.ends_with(".vcs") {
+=======
+fn walk(root: &Path, path: &Path) {
+    if path.ends_with(".vcs") {
+>>>>>>> 915a457cc94e565af96a426a32315cabde362ea9
         return;
     }
 
@@ -44,6 +53,21 @@ fn collect_files(dir: &Path, files: &mut Vec<PathBuf>) {
                 files.push(path);
             }
         }
+<<<<<<< HEAD
+=======
+    } else if path.is_file() {
+        let data = fs::read(path).expect("failed to read file");
+        let hash = object::store(&data);
+
+        let relative = path
+            .strip_prefix(root)
+            .unwrap_or(path)
+            .to_string_lossy()
+            .to_string();
+
+        index::add(&relative, &hash);
+        println!("added {}", relative);
+>>>>>>> 915a457cc94e565af96a426a32315cabde362ea9
     }
 }
 
